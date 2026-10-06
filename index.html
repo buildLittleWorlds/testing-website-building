@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Understand recursion in mathematics and computer science, then watch recursive calls unfold and return in an interactive call stack.">
+  <meta name="theme-color" content="#f6f5ef">
+  <title>Recursion — a little closer, every time</title>
+  <style>
+    :root{--paper:#f6f5ef;--ink:#242922;--muted:#697064;--line:#dcded3;--green:#436343;--lime:#e4edcc;--purple:#77669b;--lavender:#ebe7f3;--orange:#b96236;--serif:Georgia,'Times New Roman',serif;--sans:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,'Liberation Mono',monospace}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-padding-top:100px}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+    button,input{font:inherit}
+    button,a,input{-webkit-tap-highlight-color:transparent}
+    a{color:inherit;text-decoration:none}
+    button{cursor:pointer}
+    button:disabled{cursor:default;opacity:.4}
+    a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--purple);outline-offset:5px}
+    ::selection{background:var(--lime);color:var(--ink)}
+    .skip{position:fixed;top:-80px;left:20px;padding:10px 18px;background:var(--ink);color:white;z-index:20}.skip:focus{top:12px}
+    .wrap{width:min(1160px,calc(100% - 80px));margin-inline:auto}
+    header{border-bottom:1px solid var(--line);background:rgba(246,245,239,.95);position:sticky;top:0;z-index:10;backdrop-filter:blur(14px)}
+    .nav{height:82px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+    .brand{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:650;letter-spacing:-.8px}
+    .brand-icon{width:28px;height:28px;display:grid;place-items:center;border:1.5px solid var(--green);border-radius:6px;transform:rotate(-8deg)}
+    .brand-icon span{width:15px;height:15px;border:1.5px solid var(--green);border-radius:3px;display:grid;place-items:center}
+    .brand-icon span:after{content:'';width:5px;height:5px;background:var(--green);border-radius:1px}
+    .nav-links{display:flex;gap:30px;font-size:13px;color:var(--muted)}
+    .nav-links a:hover,.nav-links a[aria-current]{color:var(--green)}
+    .nav-cta{font-size:12px;font-weight:600;border:1px solid var(--line);padding:9px 16px;border-radius:6px;background:transparent;white-space:nowrap}
+    .nav-cta span{margin-left:14px}
+    .arrow-icon{width:11px;height:11px;vertical-align:-1px}
+    .eyebrow{font:11px var(--mono);letter-spacing:1.8px;text-transform:uppercase;display:flex;align-items:center;gap:10px;color:var(--green)}
+    .eyebrow:before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green)}
+    .hero{padding:72px 0 58px;display:grid;grid-template-columns:1.1fr 1fr;gap:45px;align-items:center}
+    h1,h2,h3,p{margin-top:0}
+    h1{font:normal clamp(52px,5.6vw,76px)/1.07 var(--serif);letter-spacing:-3px;margin:24px 0}
+    h1 em{font-weight:normal;color:var(--green)}
+    .hero-copy>p{max-width:440px;color:var(--muted);font-size:16px;line-height:1.8;margin-bottom:27px}
+    .hero-actions{display:flex;gap:22px;align-items:center}
+    .button{border:0;border-radius:6px;padding:12px 21px;background:var(--green);color:white;font-size:13px;font-weight:500;display:inline-flex;gap:28px;align-items:center;transition:background .2s,transform .2s}
+    .button:hover{background:#304e32;transform:translateY(-1px)}
+    .text-link{font-size:12px;border-bottom:1px solid #a1a893;padding:5px 0}
+    .hero-note{display:flex;gap:8px;align-items:center;color:var(--muted);font:10px var(--mono);margin-top:26px;letter-spacing:.3px}
+    .hero-note svg{width:13px;height:13px}
+    .hero-art{position:relative;min-height:400px;background-image:radial-gradient(#b5beaa 1px,transparent 1px);background-size:19px 19px;mask-image:linear-gradient(to right,transparent,black 15%,black 85%,transparent);display:flex;align-items:center;justify-content:center}
+    .hero-art svg{width:100%;max-width:485px;overflow:visible}
+    .art-label{font:11px var(--mono);fill:var(--green)}
+    .section-strip{display:grid;grid-template-columns:1fr 1fr 1fr;border-block:1px solid var(--line);padding:20px 0;gap:25px}
+    .strip-item{display:flex;gap:13px;align-items:center;font-size:12px}
+    .strip-item:not(:first-child){border-left:1px solid var(--line);padding-left:28px}
+    .strip-number{font:11px var(--mono);color:var(--green);background:var(--lime);width:29px;height:29px;display:grid;place-items:center;border-radius:50%;flex-shrink:0}
+    .strip-item span:last-child{color:var(--muted)}
+    section{padding:76px 0;scroll-margin-top:0}
+    .section-heading{display:flex;gap:24px;align-items:flex-start;margin-bottom:35px}
+    .section-index{font:12px var(--mono);color:var(--green);border:1px solid var(--line);border-radius:50%;width:32px;height:32px;display:grid;place-items:center;flex-shrink:0;margin-top:6px}
+    .kicker{font:10px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+    h2{font:normal 38px/1.2 var(--serif);letter-spacing:-1.2px;margin-bottom:12px}
+    .section-heading p{color:var(--muted);font-size:14px;max-width:670px;margin-bottom:0}
+    .concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+    .concept-card{border:1px solid var(--line);border-radius:10px;padding:30px;position:relative;background:#fafaf5}
+    .card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+    .tag{font:10px var(--mono);letter-spacing:.7px;border-radius:4px;padding:5px 9px;background:var(--lime);color:var(--green)}
+    .tag.purple{background:var(--lavender);color:var(--purple)}
+    .card-symbol{font:26px var(--serif);color:var(--green)}
+    .card-symbol.purple{color:var(--purple)}
+    h3{font:normal 25px/1.25 var(--serif);letter-spacing:-.4px;margin-bottom:12px}
+    .concept-card p{color:var(--muted);font-size:14px;margin-bottom:24px;max-width:430px}
+    .card-example{border-top:1px solid var(--line);padding-top:17px;font:12px/1.7 var(--mono);color:var(--green)}
+    .card-example.purple{color:var(--purple)}
+    .idea-note{padding:21px 0 0;display:flex;gap:10px;justify-content:center;color:var(--muted);font-size:12px;text-align:center}
+    .idea-note strong{color:var(--ink);font-weight:500}
+    .math-section{border-block:1px solid var(--line)}
+    .math-grid{display:grid;grid-template-columns:1fr 1fr;gap:65px;align-items:center}
+    .math-copy p{font-size:14px;color:var(--muted);max-width:470px}
+    .math-copy strong{font-weight:550;color:var(--ink)}
+    .formula{border:1px solid var(--line);border-radius:8px;padding:27px;background:#fafaf5;margin-top:23px;display:flex;align-items:center;gap:16px}
+    .formula-name{font:italic 27px var(--serif);white-space:nowrap;flex-shrink:0}
+    .formula-brace{font:normal 78px/.8 var(--serif);font-weight:300;color:#8f9b80;flex-shrink:0}
+    .formula-cases{display:grid;gap:9px;width:100%}
+    .formula-case{display:flex;gap:14px;justify-content:space-between;align-items:center;font:italic 20px var(--serif)}
+    .formula-condition{font:11px var(--mono);color:var(--muted);white-space:nowrap}
+    .math-caption{font:10px var(--mono);color:var(--muted);margin:12px 0 0}
+    .expansion{background:#eaf0de;border:1px solid #d6e1c5;border-radius:10px;padding:31px 34px}
+    .expansion .kicker{color:var(--green);margin-bottom:23px}
+    .equation-step{display:flex;align-items:baseline;gap:14px;margin:10px 0;font:23px/1.3 var(--serif);letter-spacing:.2px}
+    .equation-step .eq-left{width:31px;text-align:right;flex-shrink:0}
+    .equation-step .subproblem{color:var(--green);border-bottom:1px dashed #8fa574;padding-bottom:3px}
+    .equation-step:nth-of-type(3){padding-left:12px}.equation-step:nth-of-type(4){padding-left:24px}.equation-step:nth-of-type(5){padding-left:36px}
+    .equation-step small{font:9px var(--mono);color:var(--green);background:#dbe6c8;border-radius:4px;padding:5px 7px;margin-left:auto;white-space:nowrap}
+    .equation-result{border-top:1px solid #ccd8b9;margin-top:20px;padding-top:17px;display:flex;align-items:center;gap:14px;font:27px var(--serif)}
+    .equation-result span{color:var(--green)}
+    .math-footnote{margin-top:25px;font-size:12px;color:var(--muted);border-left:2px solid #a9b893;padding-left:15px}
+    .code-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:46px;align-items:start}
+    .code-window{background:#242d27;color:#d9e1d5;border-radius:10px;overflow:hidden;border:1px solid #242d27}
+    .code-bar{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-bottom:1px solid #404a40;font:10px var(--mono);color:#aeb9a9}
+    .window-dots{display:flex;gap:5px}.window-dots i{height:6px;width:6px;background:#78836f;border-radius:50%}
+    .code-body{padding:25px 13px 26px;font:12px/2.2 var(--mono);overflow:auto}
+    .code-line{display:block;white-space:pre;padding-inline:10px;border-radius:3px}
+    .line-no{display:inline-block;width:26px;color:#859480;user-select:none}
+    .kw{color:#c2b0e4}.fn{color:#d3e69f}.num{color:#e4b78c}.comment{color:#a1afa0}
+    .code-line.base-line{background:#354532}.code-line.recursive-line{background:#383741}
+    .code-foot{border-top:1px solid #404a40;padding:13px 20px;display:flex;gap:20px;flex-wrap:wrap;font:10px var(--mono);color:#b9c5b4}
+    .legend-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#9daf7b;margin-right:6px}.legend-dot.purple{background:#b59aca}
+    .code-notes{display:grid;gap:23px;padding-top:6px}
+    .code-note{display:grid;grid-template-columns:26px 1fr;gap:12px}
+    .note-number{font:10px var(--mono);width:23px;height:23px;background:var(--lime);color:var(--green);border-radius:50%;display:grid;place-items:center;margin-top:3px}
+    .code-note:nth-child(2) .note-number{background:var(--lavender);color:var(--purple)}
+    .code-note h3{font:550 14px var(--sans);letter-spacing:0;margin-bottom:7px}
+    .code-note p{font-size:13px;color:var(--muted);margin:0}
+    .inline-code{font:11px var(--mono);background:#e8e9e0;padding:2px 5px;border-radius:3px;color:var(--ink);white-space:nowrap}
+    .explore-section{background:#eceee5;border-block:1px solid var(--line)}
+    .explore-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+    .live-badge{font:10px var(--mono);color:var(--green);display:flex;align-items:center;gap:7px;white-space:nowrap;margin-top:15px;border:1px solid #cbd5bf;border-radius:20px;padding:5px 10px}
+    .live-badge:before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green)}
+    .explorer{display:grid;grid-template-columns:1fr 1.12fr;background:var(--paper);border:1px solid #d4d9ca;border-radius:12px;overflow:hidden}
+    .explorer-controls{padding:28px;border-right:1px solid var(--line)}
+    .example-tabs{display:flex;gap:6px;background:#e9ebe2;padding:4px;border-radius:6px;width:fit-content;margin-bottom:25px}
+    .example-tabs button{border:0;border-radius:4px;background:transparent;padding:6px 15px;font-size:11px;color:var(--muted)}
+    .example-tabs button[aria-pressed=true]{background:#fafaf6;box-shadow:0 1px 4px #2222;color:var(--ink)}
+    .input-label{display:flex;justify-content:space-between;font-size:12px;align-items:center;margin-bottom:12px}
+    .input-label output{font:12px var(--mono);background:var(--lime);color:var(--green);padding:4px 10px;border-radius:4px;min-width:47px;text-align:center}
+    input[type=range]{width:100%;accent-color:var(--green);cursor:pointer;height:18px;margin:0}
+    .range-labels{display:flex;justify-content:space-between;font:9px var(--mono);color:var(--muted);margin:3px 0 24px}
+    .mini-code{background:#e9ece2;border:1px solid #dde1d2;border-radius:6px;padding:15px 8px;margin-bottom:24px;overflow:auto;font:11px/2.1 var(--mono)}
+    .mini-code .code-line{padding-inline:9px}.mini-code .code-line.active{background:#d5dfc3;color:#304c31}.mini-code .line-no{color:#929984;width:23px}
+    .playback{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .playback button{font-size:11px;display:flex;gap:8px;align-items:center;justify-content:center;padding:9px 12px;border:1px solid #d6dacc;background:transparent;border-radius:5px;color:var(--ink);min-height:36px}
+    .playback .play-button{background:var(--green);color:white;border-color:var(--green);min-width:91px}
+    .play-icon{display:inline-block;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid currentColor}
+    .is-playing .play-icon{width:7px;height:9px;border-top:0;border-bottom:0;border-left:2px solid currentColor;border-right:2px solid currentColor}
+    .playback button:hover:enabled{border-color:var(--green)}
+    .playback .reset{margin-left:auto;width:36px;padding:9px;font-size:18px}
+    .step-status{font:10px var(--mono);color:var(--muted);margin-top:13px;margin-bottom:0}
+    .stack-panel{padding:28px;display:flex;flex-direction:column;min-height:435px}
+    .stack-header{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:20px}
+    .stack-title{font:10px var(--mono);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+    .phase{font:9px var(--mono);padding:4px 8px;border-radius:4px;background:var(--lime);color:var(--green)}
+    .phase.return{background:var(--lavender);color:var(--purple)}
+    .stack{display:flex;flex-direction:column;gap:7px;min-height:184px;flex:1;justify-content:flex-start}
+    .stack-frame{display:flex;align-items:center;justify-content:space-between;gap:12px;font:11px var(--mono);border:1px solid #dde1d2;background:#fafaf5;border-radius:5px;padding:9px 12px;position:relative;animation:frame-in .2s ease-out}
+    .stack-frame.current{background:#e5edda;border-color:#aabd94;color:#3b5834}
+    .stack-frame.current.return{background:#ebe6f1;border-color:#b4a4c8;color:#6f548f}
+    .frame-status{font-size:9px;color:var(--muted);text-align:right}
+    .stack-frame.current .frame-status{color:inherit}
+    .stack-hint{font:9px var(--mono);color:var(--muted);display:flex;gap:8px;align-items:center;justify-content:flex-end;margin:13px 0}
+    .stack-hint:before{content:'↑';font-size:13px}
+    .explanation{border-top:1px solid var(--line);padding-top:17px;margin-top:13px;font-size:12px;color:var(--muted);min-height:65px}
+    .explanation strong{font-weight:600;color:var(--ink)}
+    .explorer-tip{display:flex;justify-content:center;gap:8px;font-size:11px;color:var(--muted);margin:18px 0 0;text-align:center}
+    .beyond-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:5px}
+    .beyond-card{padding-top:23px;border-top:1px solid var(--line)}
+    .beyond-icon{width:35px;height:35px;border-radius:8px;background:var(--lime);color:var(--green);display:grid;place-items:center;margin-bottom:20px;font:18px var(--mono)}
+    .beyond-card:nth-child(2) .beyond-icon{background:var(--lavender);color:var(--purple)}
+    .beyond-card:nth-child(3) .beyond-icon{background:#f0e3d6;color:var(--orange)}
+    .beyond-card h3{font-size:22px}.beyond-card p{font-size:13px;color:var(--muted);margin-bottom:14px}
+    .beyond-example{font:10px/1.7 var(--mono);color:var(--green)}
+    .takeaway{border:1px solid var(--line);border-radius:10px;margin-top:43px;padding:26px 30px;display:flex;justify-content:space-between;align-items:center;gap:20px;background:#fafaf5}
+    .takeaway h3{font-size:24px;margin-bottom:6px}.takeaway p{font-size:12px;color:var(--muted);margin:0}.takeaway a{white-space:nowrap}
+    footer{border-top:1px solid var(--line);padding:24px 0 30px}
+    .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:15px;font:10px var(--mono);color:var(--muted)}
+    .footer-inner .brand{font:600 14px var(--sans);color:var(--ink);letter-spacing:-.3px}.footer-inner .brand-icon{width:20px;height:20px}.footer-inner .brand-icon span{width:11px;height:11px}.footer-inner .brand-icon span:after{width:3px;height:3px}
+    @keyframes frame-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+    @media(min-width:1450px){.hero{padding-top:90px;padding-bottom:80px}}
+    @media(max-width:1000px){.wrap{width:calc(100% - 48px)}.hero{gap:16px}.hero-art{min-height:350px}h1{font-size:60px}.math-grid{gap:30px}.code-grid{gap:28px}.explorer-controls,.stack-panel{padding:22px}.playback{gap:6px}.playback button{padding:9px}.equation-step small{font-size:8px}.formula{padding:22px}}
+    @media(max-width:760px){.wrap{width:calc(100% - 40px)}.nav{height:68px;gap:12px}.nav-links{display:none}.brand{font-size:18px}.nav-cta{font-size:10px;padding:8px 11px}.nav-cta span{margin-left:6px}.hero{grid-template-columns:1fr;padding:43px 0 27px;gap:7px}h1{font-size:60px;letter-spacing:-2.5px}.hero-copy>p{max-width:530px}.hero-art{min-height:0;height:320px}.hero-art svg{height:330px;width:400px;max-width:100%}.hero-note{margin-top:21px}.section-strip{gap:15px;padding:17px 0}.strip-item{gap:9px;font-size:10px;align-items:flex-start;line-height:1.5}.strip-item:not(:first-child){padding-left:12px}.strip-number{width:23px;height:23px;font-size:9px}.strip-item span:last-child{display:block;margin-top:3px}section{padding:49px 0}.section-heading{gap:13px;margin-bottom:26px}.section-index{width:27px;height:27px;font-size:10px}h2{font-size:31px}.section-heading p{font-size:13px}.concept-grid,.math-grid,.code-grid,.explorer{grid-template-columns:1fr}.concept-card{padding:25px}.concept-card p{max-width:none}.idea-note{font-size:11px}.math-grid{gap:27px}.math-copy p{max-width:none}.formula{max-width:480px}.expansion{padding:25px}.equation-step{font-size:24px}.code-grid{gap:30px}.code-body{font-size:12px}.code-notes{gap:22px}.live-badge{display:none}.explorer-controls{border-right:0;border-bottom:1px solid var(--line);padding:24px}.stack-panel{padding:24px;min-height:370px}.playback button{padding:9px 14px}.stack{min-height:125px}.beyond-grid{grid-template-columns:1fr;gap:24px}.beyond-card{display:grid;grid-template-columns:35px 1fr;column-gap:18px;padding-top:20px}.beyond-icon{grid-row:1 / 4;margin-bottom:0}.beyond-card h3{margin-bottom:8px}.beyond-card p{margin-bottom:9px}.takeaway{padding:22px;align-items:flex-start;flex-direction:column;gap:14px}.takeaway h3{font-size:22px}.footer-inner{font-size:9px}.footer-inner>span{max-width:180px;text-align:right}}
+    @media(max-width:380px){.wrap{width:calc(100% - 28px)}h1{font-size:51px}.section-strip{gap:8px}.strip-item{gap:6px}.strip-item:not(:first-child){padding-left:7px}.strip-number{display:none}.formula{padding:18px;gap:10px}.formula-case{font-size:18px}.formula-condition{font-size:10px}.playback button{padding:9px 10px}.hero-actions{gap:17px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header>
+    <nav class="nav wrap" aria-label="Main navigation">
+      <a class="brand" href="#main" aria-label="Recursion, back to the beginning"><span class="brand-icon" aria-hidden="true"><span></span></span>recursion<span style="color:var(--green)">.</span></a>
+      <div class="nav-links"><a href="#concept">The idea</a><a href="#mathematics">In mathematics</a><a href="#code">In code</a></div>
+      <a class="nav-cta" href="#explore">Try it yourself <span aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 16 16" fill="none"><path d="M3 13 13 3M4 3h9v9" stroke="currentColor" stroke-width="1.5"/></svg></span></a>
+    </nav>
+  </header>
+  <main id="main">
+    <div class="wrap">
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">Big ideas, smaller pieces</div>
+          <h1>A little closer.<br>Then a little<br><em>closer again.</em></h1>
+          <p>Recursion solves a problem by solving smaller versions of the same problem. A simple idea with surprisingly deep possibilities.</p>
+          <div class="hero-actions"><a class="button" href="#concept">Get the idea <span aria-hidden="true">↓</span></a><a class="text-link" href="#explore">Watch it unfold <span aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 16 16" fill="none"><path d="M3 13 13 3M4 3h9v9" stroke="currentColor" stroke-width="1.5"/></svg></span></a></div>
+          <div class="hero-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7" stroke="currentColor"/><path d="M10 5v5l3 2" stroke="currentColor"/></svg>A short read. A lasting mental model.</div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 480 400" fill="none">
+            <defs><filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="9" stdDeviation="10" flood-color="#546446" flood-opacity=".08"/></filter></defs>
+            <g transform="rotate(-8 240 200)" filter="url(#shadow)">
+              <rect x="58" y="42" width="330" height="296" rx="14" fill="#edf0e4" stroke="#9fae90"/>
+              <path d="M58 80h330" stroke="#cbd3bf"/><circle cx="75" cy="62" r="3" fill="#899b76"/><circle cx="86" cy="62" r="3" fill="#b5c2a5"/><circle cx="97" cy="62" r="3" fill="#c8d1be"/>
+              <text x="357" y="65" text-anchor="end" class="art-label">solve(n)</text>
+              <rect x="87" y="101" width="272" height="210" rx="10" fill="#e4ebd5" stroke="#a3b48d"/>
+              <text x="107" y="126" class="art-label">solve(n − 1)</text>
+              <rect x="116" y="144" width="213" height="140" rx="8" fill="#d8e3c3" stroke="#9eaf84"/>
+              <text x="135" y="168" class="art-label">solve(n − 2)</text>
+              <rect x="145" y="187" width="155" height="72" rx="7" fill="#ccdcb2" stroke="#91a575"/>
+              <text x="164" y="210" class="art-label">…</text>
+              <rect x="198" y="212" width="76" height="29" rx="5" fill="#436343"/>
+              <text x="236" y="231" text-anchor="middle" font-size="10" font-family="monospace" fill="#f3f6eb">base case</text>
+            </g>
+            <path d="M366 302c48 0 58-28 57-68" stroke="#77669b" stroke-width="1.2" stroke-dasharray="4 4"/><path d="m418 241 5-8 5 7" stroke="#77669b" stroke-width="1.2"/>
+            <text x="339" y="338" font-size="10" font-family="monospace" fill="#77669b">smaller each time</text>
+            <path d="M131 359h81" stroke="#aab79a"/><text x="139" y="379" font-size="9" font-family="monospace" fill="#697064">one idea, nested.</text>
+          </svg>
+        </div>
+      </div>
+      <div class="section-strip" aria-label="Your learning path">
+        <div class="strip-item"><span class="strip-number">01</span><div>Understand the pattern <span>Two essential ingredients</span></div></div>
+        <div class="strip-item"><span class="strip-number">02</span><div>Connect math and code <span>One idea, two languages</span></div></div>
+        <div class="strip-item"><span class="strip-number">03</span><div>Follow the call stack <span>See every step for yourself</span></div></div>
+      </div>
+      <section id="concept">
+        <div class="section-heading"><span class="section-index">01</span><div><div class="kicker">The core idea</div><h2>A problem inside a problem.</h2><p>To understand recursion, start with its two ingredients. One keeps things moving. The other tells us when to stop.</p></div></div>
+        <div class="concept-grid">
+          <article class="concept-card"><div class="card-top"><span class="tag">THE BASE CASE</span><span class="card-symbol" aria-hidden="true">⊙</span></div><h3>The answer you already know.</h3><p>A case so simple that you can solve it directly, without asking the same question again. It anchors the definition and gives the computation a place to stop.</p><div class="card-example">factorial(0) = 1<br>No smaller problem needed.</div></article>
+          <article class="concept-card"><div class="card-top"><span class="tag purple">THE RECURSIVE STEP</span><span class="card-symbol purple" aria-hidden="true"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M5 3v14h15m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5"/></svg></span></div><h3>A smaller version of the question.</h3><p>Express the answer using the same problem on a smaller input. Combine that smaller answer with the work at this step to solve the original problem.</p><div class="card-example purple">factorial(n) = n × factorial(n − 1)<br>Same question. One step closer.</div></article>
+        </div>
+        <div class="idea-note"><span aria-hidden="true">→</span><span>The missing ingredient? <strong>Progress toward the base case.</strong> A stopping rule only helps if you reach it.</span></div>
+      </section>
+    </div>
+    <div class="math-section">
+      <section id="mathematics" class="wrap">
+        <div class="section-heading"><span class="section-index">02</span><div><div class="kicker">In mathematics</div><h2>Define the next answer with the last.</h2><p>A recursive definition builds new values from values already defined.</p></div></div>
+        <div class="math-grid">
+          <div class="math-copy"><h3>Take factorial, for example.</h3><p>The factorial of a nonnegative integer <strong>n</strong>, written <strong>n!</strong>, is the product of the integers from 1 through n. For zero, the empty product is 1.</p><p>Instead of writing out every multiplication, we can define it recursively:</p>
+            <div class="formula" role="img" aria-label="n factorial equals 1 if n is zero, and n times n minus 1 factorial if n is at least one."><span class="formula-name">n! =</span><span class="formula-brace">{</span><div class="formula-cases"><div class="formula-case"><span>1</span><span class="formula-condition">if n = 0</span></div><div class="formula-case"><span>n · (n − 1)!</span><span class="formula-condition">if n ≥ 1</span></div></div></div>
+            <div class="math-caption">Domain: n ∈ {0, 1, 2, 3, …}</div>
+          </div>
+          <div class="expansion"><div class="kicker">Unpacking 4!, one layer at a time</div><div class="equation-step"><span class="eq-left">4!</span><span>= 4 × <span class="subproblem">3!</span></span></div><div class="equation-step"><span class="eq-left">=</span><span>4 × 3 × <span class="subproblem">2!</span></span></div><div class="equation-step"><span class="eq-left">=</span><span>4 × 3 × 2 × <span class="subproblem">1!</span></span></div><div class="equation-step"><span class="eq-left">=</span><span>4 × 3 × 2 × 1 × <span class="subproblem">0!</span></span></div><div class="equation-step"><span class="eq-left">=</span><span>4 × 3 × 2 × 1 × 1</span><small>BASE CASE</small></div><div class="equation-result">4! <span>= 24</span></div></div>
+        </div>
+        <div class="math-footnote">Why is this well-defined? Every recursive step reduces a nonnegative integer by 1, so it eventually reaches 0. Mathematical induction can prove properties of the resulting values using the same base-and-step structure.</div>
+      </section>
+    </div>
+    <section id="code" class="wrap">
+      <div class="section-heading"><span class="section-index">03</span><div><div class="kicker">In computer science</div><h2>When a function calls itself.</h2><p>The mathematical definition becomes a program. Each call waits for its smaller problem to return an answer.</p></div></div>
+      <div class="code-grid">
+        <div class="code-window"><div class="code-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>factorial.js · JavaScript</span></div><div class="code-body" role="region" aria-label="Recursive factorial JavaScript code, for nonnegative integer inputs" tabindex="0"><code><span class="code-line"><span class="line-no" aria-hidden="true">1</span><span class="comment">// Input: a nonnegative integer n</span></span><span class="code-line"><span class="line-no" aria-hidden="true">2</span><span class="kw">function</span> <span class="fn">factorial</span>(n) {</span><span class="code-line base-line"><span class="line-no" aria-hidden="true">3</span>  <span class="kw">if</span> (n === <span class="num">0</span>) <span class="kw">return</span> <span class="num">1</span>;</span><span class="code-line"><span class="line-no" aria-hidden="true">4</span></span><span class="code-line recursive-line"><span class="line-no" aria-hidden="true">5</span>  <span class="kw">return</span> n * <span class="fn">factorial</span>(n - <span class="num">1</span>);</span><span class="code-line"><span class="line-no" aria-hidden="true">6</span>}</span><span class="code-line"><span class="line-no" aria-hidden="true">7</span></span><span class="code-line"><span class="line-no" aria-hidden="true">8</span><span class="fn">factorial</span>(<span class="num">4</span>); <span class="comment">// 24</span></span></code></div><div class="code-foot"><span><span class="legend-dot"></span>Base case</span><span><span class="legend-dot purple"></span>Recursive step</span></div></div>
+        <div class="code-notes"><div class="code-note"><span class="note-number">1</span><div><h3>Check for the simplest case.</h3><p>When <span class="inline-code">n === 0</span>, return 1 immediately. This call makes no further recursive call.</p></div></div><div class="code-note"><span class="note-number">2</span><div><h3>Delegate the smaller problem.</h3><p>Call <span class="inline-code">factorial(n - 1)</span>. The current call pauses its multiplication until that call returns.</p></div></div><div class="code-note"><span class="note-number">3</span><div><h3>Let the answers travel back.</h3><p>The call stack holds the waiting function calls. Starting at the base case, each call returns its result to the caller, which finishes its own work.</p></div></div></div>
+      </div>
+    </section>
+    <div class="explore-section">
+      <section id="explore" class="wrap">
+        <div class="explore-head"><div class="section-heading"><span class="section-index">04</span><div><div class="kicker">Make it click</div><h2>Down the stack. Back with an answer.</h2><p>Pick a number, then follow the calls as they unfold and return.</p></div></div><span class="live-badge">INTERACTIVE</span></div>
+        <noscript><p>The interactive explorer needs JavaScript. The explanations and code above are available without it.</p></noscript>
+        <div class="explorer" id="explorer">
+          <div class="explorer-controls">
+            <div class="example-tabs" role="group" aria-label="Choose a recursive example"><button type="button" data-example="factorial" aria-pressed="true">Factorial</button><button type="button" data-example="sum" aria-pressed="false">Sum to n</button></div>
+            <label class="input-label" for="number"><span>Starting number, <em>n</em></span><output id="number-output" for="number">4</output></label>
+            <input id="number" type="range" min="0" max="7" value="4" step="1" aria-describedby="range-help">
+            <div class="range-labels" id="range-help"><span>0 · the base case</span><span>7 · a few more layers</span></div>
+            <div class="mini-code" role="region" aria-label="Code for the selected example" tabindex="0"><code id="demo-code"></code></div>
+            <div class="playback"><button type="button" class="play-button" id="play"><span class="play-icon" aria-hidden="true"></span><span id="play-label">Play</span></button><button type="button" id="back" aria-label="Previous step">← Back</button><button type="button" id="next" aria-label="Next step">Next →</button><button type="button" class="reset" id="reset" aria-label="Reset the walkthrough">↺</button></div>
+            <p class="step-status" id="step-status">Step 1 of 9</p>
+          </div>
+          <div class="stack-panel"><div class="stack-header"><span class="stack-title">The call stack</span><span class="phase" id="phase">CALLING ↓</span></div><div class="stack" id="stack" aria-label="Current function calls"></div><div class="stack-hint">The newest call is at the bottom</div><div class="explanation" id="explanation" aria-live="polite" aria-atomic="true"></div></div>
+        </div>
+        <p class="explorer-tip"><span aria-hidden="true">→</span>Try n = 0 to see the base case on its own. Then try “Sum to n” to see the same pattern with addition.</p>
+      </section>
+    </div>
+    <section class="wrap" id="beyond">
+      <div class="section-heading"><span class="section-index">05</span><div><div class="kicker">Beyond factorial</div><h2>Small pattern. Big possibilities.</h2><p>Recursion is especially useful when the structure of a problem is itself recursive.</p></div></div>
+      <div class="beyond-grid"><article class="beyond-card"><div class="beyond-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 8v5M5 17v-4h14v4" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="2" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="17" width="6" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="16" y="17" width="6" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Explore nested structures.</h3><p>A folder contains files and more folders. A tree contains smaller trees. Apply the same operation to each child, stopping at a leaf.</p><div class="beyond-example">Folders · syntax trees · nested data</div></article><article class="beyond-card"><div class="beyond-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v8M12 11 5 18m7-7 7 7M2 15v6h6m8 0h6v-6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div><h3>Divide, solve, combine.</h3><p>Merge sort splits a list into halves, sorts each half recursively, then merges them. A list of zero or one item is already sorted.</p><div class="beyond-example">Merge sort · binary search</div></article><article class="beyond-card"><div class="beyond-icon" aria-hidden="true">!</div><h3>Know the tradeoffs.</h3><p>Deep recursion can exhaust the call stack. Repeated subproblems can waste work. Loops, an explicit stack, or memoization may be a better fit.</p><div class="beyond-example">Naive Fibonacci repeats subproblems</div></article></div>
+      <div class="takeaway"><div><h3>Same problem. Smaller input. A place to stop.</h3><p>For factorial, recursion and a loop both take O(n) time. This recursive version also uses O(n) stack space; a loop can use O(1).</p></div><a class="text-link" href="#explore">Take another look <span aria-hidden="true">↑</span></a></div>
+    </section>
+  </main>
+  <footer><div class="wrap footer-inner"><a class="brand" href="#main"><span class="brand-icon" aria-hidden="true"><span></span></span>recursion.</a><span>Understanding, one smaller step at a time.</span></div></footer>
+  <script>
+    (() => {
+      const input = document.getElementById('number');
+      const output = document.getElementById('number-output');
+      const stack = document.getElementById('stack');
+      const phase = document.getElementById('phase');
+      const explanation = document.getElementById('explanation');
+      const code = document.getElementById('demo-code');
+      const play = document.getElementById('play');
+      const playLabel = document.getElementById('play-label');
+      const next = document.getElementById('next');
+      const back = document.getElementById('back');
+      const reset = document.getElementById('reset');
+      const status = document.getElementById('step-status');
+      const tabs = [...document.querySelectorAll('[data-example]')];
+      let example = 'factorial';
+      let events = [];
+      let index = 0;
+      let timer = null;
+      const settings = {
+        factorial: { name: 'factorial', base: 1, operator: '*', symbol: '×', combine: (n, answer) => n * answer },
+        sum: { name: 'sum', base: 0, operator: '+', symbol: '+', combine: (n, answer) => n + answer }
+      };
+
+      function stop() {
+        if (timer !== null) clearInterval(timer);
+        timer = null;
+        playLabel.textContent = index === events.length - 1 ? 'Replay' : 'Play';
+        play.classList.remove('is-playing');
+      }
+
+      function prepare() {
+        stop();
+        const n = Number(input.value);
+        output.value = String(n);
+        const s = settings[example];
+        events = [];
+        for (let current = n; current >= 0; current--) {
+          events.push({ current, phase: current === 0 ? 'base' : 'call', result: s.base });
+        }
+        let answer = s.base;
+        for (let current = 1; current <= n; current++) {
+          const previous = answer;
+          answer = s.combine(current, answer);
+          events.push({ current, phase: 'return', result: answer, previous });
+        }
+        index = 0;
+        render();
+      }
+
+      function render() {
+        const n = Number(input.value);
+        const s = settings[example];
+        const event = events[index];
+        const finished = index === events.length - 1;
+        const returning = event.phase === 'return';
+        phase.textContent = finished ? 'COMPLETE ✓' : event.phase === 'base' ? 'BASE CASE •' : returning ? 'RETURNING ↑' : 'CALLING ↓';
+        phase.classList.toggle('return', returning);
+        stack.replaceChildren();
+        for (let current = n; current >= event.current; current--) {
+          const active = current === event.current;
+          const frame = document.createElement('div');
+          frame.className = 'stack-frame' + (active ? ' current' : '') + (active && returning ? ' return' : '');
+          frame.style.marginLeft = `${(n - current) * 10}px`;
+          const name = document.createElement('span');
+          name.textContent = `${s.name}(${current})`;
+          const detail = document.createElement('span');
+          detail.className = 'frame-status';
+          detail.textContent = !active ? `waiting for ${s.name}(${current - 1})` : event.phase === 'call' ? 'current call' : `returns ${event.result}`;
+          frame.append(name, detail);
+          stack.append(frame);
+        }
+        const lines = [
+          `function ${s.name}(n) {`,
+          `  if (n === 0) return ${s.base};`,
+          `  return n ${s.operator} ${s.name}(n - 1);`,
+          `}`
+        ];
+        code.replaceChildren();
+        lines.forEach((line, i) => {
+          const row = document.createElement('span');
+          row.className = 'code-line' + ((event.phase === 'base' ? i === 1 : i === 2) ? ' active' : '');
+          const number = document.createElement('span');
+          number.className = 'line-no';
+          number.setAttribute('aria-hidden', 'true');
+          number.textContent = String(i + 1);
+          row.append(number, document.createTextNode(line));
+          code.append(row);
+        });
+        explanation.replaceChildren();
+        const lead = document.createElement('strong');
+        let detail;
+        if (event.phase === 'call') {
+          lead.textContent = `Solve ${s.name}(${event.current}). `;
+          detail = `We need ${s.name}(${event.current - 1}) first. This call waits while the smaller problem is solved.`;
+        } else if (event.phase === 'base') {
+          lead.textContent = `The base case: ${s.name}(0) = ${s.base}. `;
+          detail = n === 0 ? 'The answer is already known. No recursive calls are needed.' : 'No more calls. Now this answer can return to the waiting caller.';
+        } else {
+          lead.textContent = `${event.current} ${s.symbol} ${event.previous} = ${event.result}. `;
+          detail = finished ? `All calls have returned. ${s.name}(${n}) = ${event.result}.` : `${s.name}(${event.current}) returns ${event.result} to ${s.name}(${event.current + 1}).`;
+        }
+        explanation.append(lead, document.createTextNode(detail));
+        status.textContent = `Step ${index + 1} of ${events.length}`;
+        back.disabled = index === 0;
+        next.disabled = finished;
+        if (timer === null) playLabel.textContent = finished ? 'Replay' : 'Play';
+      }
+
+      input.addEventListener('input', prepare);
+      tabs.forEach(tab => tab.addEventListener('click', () => {
+        example = tab.dataset.example;
+        tabs.forEach(button => button.setAttribute('aria-pressed', String(button === tab)));
+        prepare();
+      }));
+      next.addEventListener('click', () => { stop(); if (index < events.length - 1) index++; render(); });
+      back.addEventListener('click', () => { stop(); if (index > 0) index--; render(); });
+      reset.addEventListener('click', prepare);
+      play.addEventListener('click', () => {
+        if (timer !== null) { stop(); return; }
+        if (index === events.length - 1) { index = 0; render(); }
+        if (events.length === 1) return;
+        playLabel.textContent = 'Pause';
+        play.classList.add('is-playing');
+        timer = setInterval(() => {
+          index++;
+          render();
+          if (index === events.length - 1) stop();
+        }, 1100);
+      });
+      document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
+      prepare();
+      if ('IntersectionObserver' in window) {
+        const links = [...document.querySelectorAll('.nav-links a')];
+        const observer = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              links.forEach(link => {
+                if (link.hash === `#${entry.target.id}`) link.setAttribute('aria-current', 'location');
+                else link.removeAttribute('aria-current');
+              });
+            }
+          });
+        }, { rootMargin: '-15% 0px -65% 0px' });
+        document.querySelectorAll('section[id]').forEach(section => observer.observe(section));
+      }
+    })();
+  </script>
+</body>
+</html>
